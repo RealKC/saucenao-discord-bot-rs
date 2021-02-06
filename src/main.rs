@@ -4,16 +4,16 @@ mod hooks;
 use commands::*;
 use hooks::*;
 
+use dotenv::dotenv;
 use serenity::{
     async_trait,
     client::bridge::gateway::ShardManager,
     framework::standard::{buckets::LimitedFor, StandardFramework},
     http::Http,
     model::gateway::Ready,
+    prelude::*,
 };
 use std::{collections::HashSet, env, sync::Arc};
-
-use serenity::prelude::*;
 
 struct ShardManagerContainer;
 
@@ -32,6 +32,8 @@ impl EventHandler for Handler {
 
 #[tokio::main]
 async fn main() {
+    dotenv().ok();
+
     let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
 
     let http = Http::new_with_token(&token);
