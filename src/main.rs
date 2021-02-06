@@ -5,10 +5,11 @@ use commands::*;
 use hooks::*;
 
 use dotenv::dotenv;
+use sauce_api::sources::SauceNao;
 use serenity::{
     async_trait,
     client::bridge::gateway::ShardManager,
-    framework::standard::{buckets::LimitedFor, StandardFramework},
+    framework::standard::{buckets::LimitedFor, macros::group, StandardFramework},
     http::Http,
     model::gateway::Ready,
     prelude::*,
@@ -20,6 +21,16 @@ struct ShardManagerContainer;
 impl TypeMapKey for ShardManagerContainer {
     type Value = Arc<Mutex<ShardManager>>;
 }
+
+struct SauceContainer;
+
+impl TypeMapKey for SauceContainer {
+    type Value = Arc<RwLock<SauceNao>>;
+}
+
+#[group("Commands")]
+#[commands(sauce)]
+struct Commands;
 
 struct Handler;
 
@@ -76,7 +87,8 @@ async fn main() {
                 .delay_action(delay_action)
         })
         .await
-        .help(&MY_HELP);
+        .help(&MY_HELP)
+        .group(&COMMANDS_GROUP);
     let mut client = Client::builder(&token)
         .event_handler(Handler)
         .framework(framework)
@@ -86,6 +98,10 @@ async fn main() {
     {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(Arc::clone(&client.shard_manager));
+
+        let mut saucenao = SauceNao::new();
+        saucenao.set_api_key(env::var("SAUCENAO_API_KEY").expect("The purpose of this bot is to search SauceNao, I need a SauceNao API Key in an env var called 'SAUCENAO_API_KEY' to work."));
+        data.insert::<SauceContainer>(Arc::new(RwLock::new(saucenao)));
     }
 
     if let Err(why) = client.start().await {
