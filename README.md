@@ -5,3 +5,5 @@ This is a Discord bot that adds a command `~sauce` that querries saucenao for th
 ## License
 
 AGPLv3
+
+Unless stated otherwise, contributions to this repository are assumed to also fall under the same license. 
