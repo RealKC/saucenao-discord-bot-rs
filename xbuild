@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 cargo build --release --target armv7-unknown-linux-gnueabihf
-arm-none-linux-gnueabihf-strip target/armv7-unknown-linux-gnueabihf/release/kingdom-royale-maid
+arm-none-linux-gnueabihf-strip target/armv7-unknown-linux-gnueabihf/release/saucenao-discord-bot-rs
