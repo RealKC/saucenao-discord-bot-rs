@@ -15,6 +15,7 @@ use serenity::{
     prelude::*,
 };
 use std::{collections::HashSet, env, sync::Arc};
+use tracing::info;
 
 struct ShardManagerContainer;
 
@@ -102,6 +103,25 @@ async fn main() {
         let mut saucenao = SauceNao::new();
         saucenao.set_api_key(env::var("SAUCENAO_API_KEY").expect("The purpose of this bot is to search SauceNao, I need a SauceNao API Key in an env var called 'SAUCENAO_API_KEY' to work."));
         data.insert::<SauceContainer>(Arc::new(RwLock::new(saucenao)));
+    }
+
+    use tokio::{signal::unix::signal, signal::unix::SignalKind};
+
+    let shard_manager = client.shard_manager.clone();
+
+    let signals_to_handle = vec![
+        SignalKind::hangup(),
+        SignalKind::interrupt(),
+        SignalKind::terminate(),
+    ];
+    for kind in signals_to_handle {
+        let mut stream = signal(kind).unwrap();
+        let shard_manager = shard_manager.clone();
+        tokio::spawn(async move {
+            stream.recv().await;
+            info!("Signal received - shutting down!");
+            shard_manager.lock().await.shutdown_all().await;
+        });
     }
 
     if let Err(why) = client.start().await {
