@@ -99,6 +99,10 @@ pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
 #[inline]
 async fn call_user_out(ctx: &Context, msg: &Message) -> CommandResult {
-    msg.reply(ctx, "The message previous to yours must either have an attachment, or you must provide an URL as argument to the command").await?;
+    msg.author.dm(ctx, |m| {
+        m
+        .content("The message previous to yours must either have an attachment, or you must provide an URL as argument to the command")
+    }).await?;
+    msg.react(ctx, ReactionType::Unicode("❌".into())).await?;
     Ok(())
 }
