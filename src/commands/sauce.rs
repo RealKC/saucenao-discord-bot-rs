@@ -16,7 +16,7 @@ use crate::SauceContainer;
 #[description("This command will search saucenao for the image you provide it with. Not providing one will make me check the first attachment of the previous message")]
 pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let url = {
-        let mut raw_arg = args.parse::<String>()?;
+        let mut raw_arg = args.parse::<String>().unwrap_or_else(|_| "".into());
         if raw_arg.is_empty() {
             let message = msg
                 .channel_id
