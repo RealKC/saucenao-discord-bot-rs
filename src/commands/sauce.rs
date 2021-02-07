@@ -13,19 +13,46 @@ use url::Url;
 use crate::SauceContainer;
 
 #[command]
+#[description("This command will search saucenao for the image you provide it with. Not providing one will make me check the first attachment of the previous message")]
 pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let url = {
-        let url = Url::parse(args.rest()).ok();
-        if let Some(url) = url {
-            url
-        } else {
+        let mut raw_arg = args.parse::<String>()?;
+        if raw_arg.is_empty() {
             let message = msg
                 .channel_id
                 .messages(ctx, |gm| gm.before(msg.id).limit(1))
                 .await?;
 
-            let url = &message[0].attachments[0].url;
-            Url::parse(url).expect("Either Discord or serenity gave us an invalid URL!")
+            let attachment = &message[0].attachments.get(0);
+            if let Some(attachment) = attachment {
+                Url::parse(&attachment.url)
+                    .expect("Either Discord or serenity gave us an invalid URL!")
+            } else {
+                call_user_out(ctx, msg).await?;
+                return Ok(());
+            }
+        } else {
+            const MIN_URL_LENGTH: usize = "<http://>".len();
+
+            if raw_arg.len() < MIN_URL_LENGTH {
+                call_user_out(ctx, msg).await?;
+                return Ok(());
+            }
+
+            if raw_arg.starts_with('<') {
+                raw_arg = raw_arg[1..].to_string();
+            }
+
+            if raw_arg.ends_with('>') {
+                raw_arg = raw_arg[..raw_arg.len()].to_string();
+            }
+
+            if let Ok(url) = Url::parse(&raw_arg) {
+                url
+            } else {
+                call_user_out(ctx, msg).await?;
+                return Ok(());
+            }
         }
     };
 
@@ -67,5 +94,11 @@ pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         }
     }
 
+    Ok(())
+}
+
+#[inline]
+async fn call_user_out(ctx: &Context, msg: &Message) -> CommandResult {
+    msg.reply(ctx, "The message previous to yours must either have an attachment, or you must provide an URL as argument to the command").await?;
     Ok(())
 }
