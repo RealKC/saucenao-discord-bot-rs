@@ -11,7 +11,7 @@ use serenity::{
     client::bridge::gateway::ShardManager,
     framework::standard::{buckets::LimitedFor, macros::group, StandardFramework},
     http::Http,
-    model::gateway::Ready,
+    model::{gateway::Ready, id::GuildId, prelude::Activity},
     prelude::*,
 };
 use std::{collections::HashSet, env, sync::Arc};
@@ -39,6 +39,9 @@ struct Handler;
 impl EventHandler for Handler {
     async fn ready(&self, _: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
+    }
+    async fn cache_ready(&self, ctx: Context, _guilds: Vec<GuildId>) {
+        ctx.set_activity(Activity::playing("~help")).await;
     }
 }
 
