@@ -21,9 +21,9 @@ git = "https://github.com/serenity-rs/serenity"
 branch = "current"
 
 [dependencies.sauce-api]
-# git = "https://github.com/lyssieth/sauce-api"
-# branch = "master"
-git = "https://github.com/RealKC/sauce-api"
-branch = "allow-choosing-tls-stack"
+git = "https://github.com/lyssieth/sauce-api"
+branch = "master"
+# git = "https://github.com/RealKC/sauce-api"
+# branch = "allow-choosing-tls-stack"
 # path = "../sauce-api"
 features = ["rustls"]

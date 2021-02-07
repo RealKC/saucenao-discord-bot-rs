@@ -985,7 +985,7 @@ checksum = "71d301d4193d031abdd79ff7e3dd721168a9572ef3fe51a1517aba235bd8f86e"
 [[package]]
 name = "sauce-api"
 version = "0.6.1-alpha3"
-source = "git+https://github.com/RealKC/sauce-api?branch=allow-choosing-tls-stack#53d14c58c8acec2b1bb9f6aafdea5132a96e4117"
+source = "git+https://github.com/lyssieth/sauce-api?branch=master#87677cd382bf3d1bf699d9bbb69084ee2689da79"
 dependencies = [
  "async-trait",
  "reqwest",
