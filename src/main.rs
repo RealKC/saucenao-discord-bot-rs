@@ -108,23 +108,26 @@ async fn main() {
         data.insert::<SauceContainer>(Arc::new(RwLock::new(saucenao)));
     }
 
-    use tokio::{signal::unix::signal, signal::unix::SignalKind};
+    #[cfg(unix)]
+    {
+        use tokio::{signal::unix::signal, signal::unix::SignalKind};
 
-    let shard_manager = client.shard_manager.clone();
+        let shard_manager = client.shard_manager.clone();
 
-    let signals_to_handle = vec![
-        SignalKind::hangup(),
-        SignalKind::interrupt(),
-        SignalKind::terminate(),
-    ];
-    for kind in signals_to_handle {
-        let mut stream = signal(kind).unwrap();
-        let shard_manager = shard_manager.clone();
-        tokio::spawn(async move {
-            stream.recv().await;
-            info!("Signal received - shutting down!");
-            shard_manager.lock().await.shutdown_all().await;
-        });
+        let signals_to_handle = vec![
+            SignalKind::hangup(),
+            SignalKind::interrupt(),
+            SignalKind::terminate(),
+        ];
+        for kind in signals_to_handle {
+            let mut stream = signal(kind).unwrap();
+            let shard_manager = shard_manager.clone();
+            tokio::spawn(async move {
+                stream.recv().await;
+                info!("Signal received - shutting down!");
+                shard_manager.lock().await.shutdown_all().await;
+            });
+        }
     }
 
     if let Err(why) = client.start().await {
