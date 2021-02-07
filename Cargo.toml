@@ -14,9 +14,16 @@ tracing = "0.1.23"
 tracing-subscriber = "0.2.15"
 
 dotenv = "0.15.0"
-sauce-api = { git = "https://github.com/lyssieth/sauce-api", branch = "master"}
 url = "2.2.0"
 
 [dependencies.serenity]
 git = "https://github.com/serenity-rs/serenity"
 branch = "current"
+
+[dependencies.sauce-api]
+# git = "https://github.com/lyssieth/sauce-api"
+# branch = "master"
+git = "https://github.com/RealKC/sauce-api"
+branch = "allow-choosing-tls-stack"
+# path = "../sauce-api"
+features = ["rustls"]
