@@ -23,6 +23,8 @@ pub async fn about(ctx: &Context, msg: &Message) -> CommandResult {
 {bot_name} was written by {owner_name}#{owner_discrim} using the Rust language.
 
 {bot_name} is licensed under the AGPLv3 license, and you may view its source code at <https://github.com/RealKC/saucenao-discord-bot-rs>.
+
+The time range starting at 22:00 and ending at 23:59, Romanian time, is reserved on Fridays for update deployment and maintanance.
     "#,
     bot_name=bot_name,
     owner_name=owner.name,
