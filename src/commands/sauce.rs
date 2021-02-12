@@ -13,23 +13,43 @@ use url::Url;
 use crate::SauceContainer;
 
 #[command]
-#[description("This command will search saucenao for the image you provide it with. Not providing one will make me check the first attachment of the previous message")]
+#[description(r#"
+This command searches Saucenao for the source of a provided image.
+
+You may provide it in the following ways:
+ \* by calling this command right after someone posted an image
+ \* by calling this command while replying to a message with a image attachment
+ \* by providing the URL of the image as a command parameter, for example `~sauce <url>`
+ \* by calling this image in a message with an image attachment
+
+It is important to note that this will NOT try to find URLs in the _contents_ of a previous message, it must be an attachment.
+"#)]
 pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let url = {
         let mut raw_arg = args.parse::<String>().unwrap_or_else(|_| "".into());
         if raw_arg.is_empty() {
-            let message = msg
-                .channel_id
-                .messages(ctx, |gm| gm.before(msg.id).limit(1))
-                .await?;
-
-            let attachment = &message[0].attachments.get(0);
-            if let Some(attachment) = attachment {
-                Url::parse(&attachment.url)
-                    .expect("Either Discord or serenity gave us an invalid URL!")
+            if let Some(url) = get_first_attachment_url_from(msg) {
+                url
+            } else if let Some(url) = msg
+                .referenced_message
+                .clone()
+                .and_then(|m| get_first_attachment_url_from(&*m))
+            {
+                url
             } else {
-                call_user_out(ctx, msg).await?;
-                return Ok(());
+                let message = msg
+                    .channel_id
+                    .messages(ctx, |gm| gm.before(msg.id).limit(1))
+                    .await?;
+
+                let url = message.get(0).and_then(get_first_attachment_url_from);
+
+                if let Some(url) = url {
+                    url
+                } else {
+                    call_user_out(ctx, msg).await?;
+                    return Ok(());
+                }
             }
         } else {
             const MIN_URL_LENGTH: usize = "<http://>".len();
@@ -97,12 +117,17 @@ pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     Ok(())
 }
 
-#[inline]
 async fn call_user_out(ctx: &Context, msg: &Message) -> CommandResult {
     msg.author.dm(ctx, |m| {
         m
-        .content("The message previous to yours must either have an attachment, or you must provide an URL as argument to the command")
+        .content("One of your message or the previous message must have an attachment **or** you must provide a valid URL as argument to the command")
     }).await?;
     msg.react(ctx, ReactionType::Unicode("❌".into())).await?;
     Ok(())
+}
+
+fn get_first_attachment_url_from(msg: &Message) -> Option<Url> {
+    let attachment = msg.attachments.get(0)?;
+
+    Some(Url::parse(&attachment.url).expect("Either Discord or serenity gave us an invalid URL!"))
 }
