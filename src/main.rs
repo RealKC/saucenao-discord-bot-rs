@@ -79,7 +79,6 @@ async fn main() {
         })
         .after(after)
         .unrecognised_command(unknown_command)
-        .normal_message(normal_message)
         .bucket("emoji", |b| b.delay(5))
         .await
         .bucket("complicated", |b| {
