@@ -143,7 +143,7 @@ dependencies = [
 [[package]]
 name = "command_attr"
 version = "0.3.3"
-source = "git+https://github.com/serenity-rs/serenity?branch=current#2a21347797af68c4ce1a5929aa488078cbd97378"
+source = "git+https://github.com/serenity-rs/serenity?branch=current#dcc1ac4d0a12f24e998af3949e33ec352153a6af"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -340,7 +340,7 @@ checksum = "8fc3cb4d91f53b50155bdcfd23f6a4c39ae1969c2ae85982b135750cccaf5fce"
 dependencies = [
  "cfg-if",
  "libc",
- "wasi",
+ "wasi 0.9.0+wasi-snapshot-preview1",
 ]
 
 [[package]]
@@ -523,9 +523,9 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
-version = "0.2.85"
+version = "0.2.86"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ccac4b00700875e6a07c6cde370d44d32fa01c5a65cdd2fca6858c479d28bb3"
+checksum = "b7282d924be3275cec7f6756ff4121987bc6481325397dde6ba3e7802b1a8b1c"
 
 [[package]]
 name = "log"
@@ -828,9 +828,9 @@ dependencies = [
 
 [[package]]
 name = "quote"
-version = "1.0.8"
+version = "1.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "991431c3519a3f36861882da93630ce66b52918dcf1b8e2fd66b397fc96f28df"
+checksum = "c3d0b9745dc2debf507c8422de05d7226cc1f0644216dfdfead988f9b1ab32a7"
 dependencies = [
  "proc-macro2",
 ]
@@ -984,13 +984,14 @@ checksum = "71d301d4193d031abdd79ff7e3dd721168a9572ef3fe51a1517aba235bd8f86e"
 
 [[package]]
 name = "sauce-api"
-version = "0.6.1-alpha3"
-source = "git+https://github.com/lyssieth/sauce-api?branch=master#87677cd382bf3d1bf699d9bbb69084ee2689da79"
+version = "0.7.1"
+source = "git+https://github.com/lyssieth/sauce-api?branch=master#23e2367c602d56149fbf8b8cd1cdcc6fa4c61dbb"
 dependencies = [
  "async-trait",
  "reqwest",
  "select",
  "serde",
+ "serde_json",
  "strfmt",
  "thiserror",
  "urlencoding",
@@ -1077,7 +1078,7 @@ dependencies = [
 [[package]]
 name = "serenity"
 version = "0.10.2"
-source = "git+https://github.com/serenity-rs/serenity?branch=current#2a21347797af68c4ce1a5929aa488078cbd97378"
+source = "git+https://github.com/serenity-rs/serenity?branch=current#dcc1ac4d0a12f24e998af3949e33ec352153a6af"
 dependencies = [
  "async-trait",
  "async-tungstenite",
@@ -1256,11 +1257,12 @@ dependencies = [
 
 [[package]]
 name = "time"
-version = "0.1.43"
+version = "0.1.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca8a50ef2360fbd1eeb0ecd46795a87a19024eb4b53c5dc916ca1fd95fe62438"
+checksum = "6db9e6914ab8b1ae1c260a4ae7a49b6c5611b40328a735b21862567685e73255"
 dependencies = [
  "libc",
+ "wasi 0.10.0+wasi-snapshot-preview1",
  "winapi",
 ]
 
@@ -1483,9 +1485,9 @@ dependencies = [
 
 [[package]]
 name = "unicode-normalization"
-version = "0.1.16"
+version = "0.1.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a13e63ab62dbe32aeee58d1c5408d35c36c392bba5d9d3142287219721afe606"
+checksum = "07fbfce1c8a97d547e8b5334978438d9d6ec8c20e38f56d4a4374d181493eaef"
 dependencies = [
  "tinyvec",
 ]
@@ -1553,6 +1555,12 @@ name = "wasi"
 version = "0.9.0+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cccddf32554fecc6acb585f82a32a72e28b48f8c4c1883ddfeeeaa96f7d8e519"
+
+[[package]]
+name = "wasi"
+version = "0.10.0+wasi-snapshot-preview1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1a143597ca7c7793eff794def352d41792a93c481eb1042423ff7ff72ba2c31f"
 
 [[package]]
 name = "wasm-bindgen"

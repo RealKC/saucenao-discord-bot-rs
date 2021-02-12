@@ -65,7 +65,7 @@ pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         .expect("Bruh. Where's the Sauce");
     let saucenao = saucenao_guard.read().await;
 
-    let sauce = saucenao.check_sauce(url.as_str().to_string()).await;
+    let sauce = saucenao.check_sauce(url.as_str()).await;
 
     match sauce {
         Ok(sauce) => {
