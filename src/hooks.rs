@@ -24,11 +24,6 @@ pub async fn unknown_command(_ctx: &Context, _msg: &Message, unknown_command_nam
 }
 
 #[hook]
-pub async fn normal_message(_ctx: &Context, msg: &Message) {
-    println!("Message is not a command '{}'", msg.content);
-}
-
-#[hook]
 pub async fn delay_action(ctx: &Context, msg: &Message) {
     let _ = msg.react(ctx, '⏱').await;
 }
