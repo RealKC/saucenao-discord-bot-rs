@@ -30,7 +30,7 @@ impl TypeMapKey for SauceContainer {
 }
 
 #[group("Commands")]
-#[commands(sauce)]
+#[commands(sauce, about)]
 struct Commands;
 
 struct Handler;
