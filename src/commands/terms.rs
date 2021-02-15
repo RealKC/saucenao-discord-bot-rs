@@ -1,3 +1,5 @@
+//https://upload.wikimedia.org/wikipedia/commons/1/1b/Neko_Wikipe-tan.svg
+
 use serenity::prelude::*;
 use serenity::{
     framework::standard::{macros::command, CommandResult},

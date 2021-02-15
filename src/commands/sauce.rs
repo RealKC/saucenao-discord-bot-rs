@@ -1,3 +1,5 @@
+//https://upload.wikimedia.org/wikipedia/commons/1/1b/Neko_Wikipe-tan.svg
+
 use std::cmp::min;
 
 use sauce_api::Sauce;

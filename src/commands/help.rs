@@ -1,3 +1,5 @@
+//https://upload.wikimedia.org/wikipedia/commons/1/1b/Neko_Wikipe-tan.svg
+
 use serenity::{
     framework::standard::{
         help_commands, macros::help, Args, CommandGroup, CommandResult, HelpOptions,
