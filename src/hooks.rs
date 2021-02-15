@@ -1,4 +1,4 @@
-//https://upload.wikimedia.org/wikipedia/commons/1/1b/Neko_Wikipe-tan.svg
+//https://i1.sndcdn.com/artworks-000561741465-a5a64j-t500x500.jpg
 
 use serenity::{
     framework::standard::{macros::hook, CommandResult},

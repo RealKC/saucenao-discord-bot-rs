@@ -1,4 +1,4 @@
-//https://upload.wikimedia.org/wikipedia/commons/1/1b/Neko_Wikipe-tan.svg
+//https://www.dogalize.com/wp-content/uploads/2017/06/cat-girl.jpg
 
 mod about;
 mod help;

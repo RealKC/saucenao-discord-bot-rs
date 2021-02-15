@@ -1,4 +1,4 @@
-//https://upload.wikimedia.org/wikipedia/commons/1/1b/Neko_Wikipe-tan.svg
+//https://i.redd.it/vrkb7gdkll051.png
 
 use serenity::prelude::*;
 use serenity::{

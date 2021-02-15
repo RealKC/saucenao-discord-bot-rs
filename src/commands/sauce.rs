@@ -1,4 +1,4 @@
-//https://upload.wikimedia.org/wikipedia/commons/1/1b/Neko_Wikipe-tan.svg
+//https://fsa.zobj.net/crop.php?r=TTaoo-Hk-NzrmVjElOUhUzi89I-XZojwpmk_E8w3SClP7apqNrE-YEKqCtf_WJ5CeIk5IRVf8q8jfCUSXeRixiP12a25ZWPzHzbxUBjpF9iNixLG2V0TZRKjp4I3JV73bfV5vLEwmBn1W5-F
 
 use std::cmp::min;
 
