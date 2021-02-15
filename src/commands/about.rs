@@ -1,3 +1,5 @@
+//https://external-preview.redd.it/UPwtM-5d7vGSxFH2ywEvvAZQVoQFf6lQ1w-blYPoOXE.png?auto=webp&s=3cb1da0ee3195d27ca0c1eb22b49b9eb02111884
+
 use serenity::prelude::*;
 use serenity::{
     framework::standard::{macros::command, CommandResult},
