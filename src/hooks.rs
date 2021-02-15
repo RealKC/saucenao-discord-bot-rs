@@ -1,3 +1,5 @@
+//https://i1.sndcdn.com/artworks-000561741465-a5a64j-t500x500.jpg
+
 use serenity::{
     framework::standard::{macros::hook, CommandResult},
     model::channel::Message,
@@ -21,11 +23,6 @@ pub async fn after(
 #[hook]
 pub async fn unknown_command(_ctx: &Context, _msg: &Message, unknown_command_name: &str) {
     println!("Could not find command named '{}'", unknown_command_name);
-}
-
-#[hook]
-pub async fn normal_message(_ctx: &Context, msg: &Message) {
-    println!("Message is not a command '{}'", msg.content);
 }
 
 #[hook]

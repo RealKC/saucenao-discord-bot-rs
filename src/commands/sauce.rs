@@ -1,3 +1,5 @@
+//https://fsa.zobj.net/crop.php?r=TTaoo-Hk-NzrmVjElOUhUzi89I-XZojwpmk_E8w3SClP7apqNrE-YEKqCtf_WJ5CeIk5IRVf8q8jfCUSXeRixiP12a25ZWPzHzbxUBjpF9iNixLG2V0TZRKjp4I3JV73bfV5vLEwmBn1W5-F
+
 use std::cmp::min;
 
 use sauce_api::Sauce;
@@ -89,7 +91,12 @@ pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     match sauce {
         Ok(sauce) => {
-            msg.react(ctx, ReactionType::Unicode("✅".into())).await?;
+            if sauce.items[0].similarity > 50.0 {
+                msg.react(ctx, ReactionType::Unicode("✅".into())).await?;
+            } else {
+                msg.react(ctx, ReactionType::Unicode("😕".into())).await?;
+            }
+
             info!("URL?: {}", sauce.original_url);
 
             let mut contents = String::with_capacity(2000);
