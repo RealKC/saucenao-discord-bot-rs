@@ -27,54 +27,11 @@ You may provide it in the following ways:
 It is important to note that this will NOT try to find URLs in the _contents_ of a previous message, it must be an attachment.
 "#)]
 pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
-    let url = {
-        let mut raw_arg = args.parse::<String>().unwrap_or_else(|_| "".into());
-        if raw_arg.is_empty() {
-            if let Some(url) = get_first_attachment_url_from(msg) {
-                url
-            } else if let Some(url) = msg
-                .referenced_message
-                .clone()
-                .and_then(|m| get_first_attachment_url_from(&*m))
-            {
-                url
-            } else {
-                let message = msg
-                    .channel_id
-                    .messages(ctx, |gm| gm.before(msg.id).limit(1))
-                    .await?;
-
-                let url = message.get(0).and_then(get_first_attachment_url_from);
-
-                if let Some(url) = url {
-                    url
-                } else {
-                    call_user_out(ctx, msg).await?;
-                    return Ok(());
-                }
-            }
-        } else {
-            const MIN_URL_LENGTH: usize = "<http://>".len();
-
-            if raw_arg.len() < MIN_URL_LENGTH {
-                call_user_out(ctx, msg).await?;
-                return Ok(());
-            }
-
-            if raw_arg.starts_with('<') {
-                raw_arg = raw_arg[1..].to_string();
-            }
-
-            if raw_arg.ends_with('>') {
-                raw_arg = raw_arg[..raw_arg.len()].to_string();
-            }
-
-            if let Ok(url) = Url::parse(&raw_arg) {
-                url
-            } else {
-                call_user_out(ctx, msg).await?;
-                return Ok(());
-            }
+    let urls = match get_urls(&ctx, &msg, args) {
+        Some(urls) => { urls }
+        None => {
+            call_user_out(ctx, msg).await?;
+            return Ok(());
         }
     };
 
@@ -87,32 +44,34 @@ pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         .expect("Bruh. Where's the Sauce");
     let saucenao = saucenao_guard.read().await;
 
-    let sauce = saucenao.check_sauce(url.as_str()).await;
+    for url in &urls {
+        let sauce = saucenao.check_sauce(url.as_str()).await;
 
-    match sauce {
-        Ok(sauce) => {
-            msg.react(ctx, ReactionType::Unicode("✅".into())).await?;
-            info!("URL?: {}", sauce.original_url);
+        match sauce {
+            Ok(sauce) => {
+                msg.react(ctx, ReactionType::Unicode("✅".into())).await?;
+                info!("URL?: {}", sauce.original_url);
 
-            let mut contents = String::with_capacity(2000);
-            contents.push_str("Possible sauces:\n");
-            for i in 0..min(5, sauce.items.len()) {
-                contents.push_str(&format!(
-                    "* {similarity}% similar: <{url}>\n",
-                    similarity = sauce.items[i].similarity,
-                    url = sauce.items[i].link
-                ));
+                let mut contents = String::with_capacity(2000);
+                contents.push_str("Possible sauces:\n");
+                for i in 0..min(5, sauce.items.len()) {
+                    contents.push_str(&format!(
+                                "* {similarity}% similar: <{url}>\n",
+                                similarity = sauce.items[i].similarity,
+                                url = sauce.items[i].link
+                                ));
+                }
+
+                msg.author.dm(ctx, |m| m.content(contents)).await?;
             }
-
-            msg.author.dm(ctx, |m| m.content(contents)).await?;
-        }
-        Err(why) => {
-            msg.react(ctx, ReactionType::Unicode("❌".into())).await?;
-            msg.author
-                .dm(ctx, |m| {
-                    m.content(format!("Couldn't get the sauce :c: \n ```{}```", why))
-                })
+            Err(why) => {
+                msg.react(ctx, ReactionType::Unicode("❌".into())).await?;
+                msg.author
+                    .dm(ctx, |m| {
+                            m.content(format!("Couldn't get the sauce :c: \n ```{}```", why))
+                            })
                 .await?;
+            }
         }
     }
 
@@ -121,15 +80,111 @@ pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
 async fn call_user_out(ctx: &Context, msg: &Message) -> CommandResult {
     msg.author.dm(ctx, |m| {
-        m
-        .content("One of your message or the previous message must have an attachment **or** you must provide a valid URL as argument to the command")
-    }).await?;
+            m
+            .content("One of your message or the previous message must have an attachment **or** you must provide a valid URL as argument to the command")
+            }).await?;
     msg.react(ctx, ReactionType::Unicode("❌".into())).await?;
     Ok(())
 }
 
-fn get_first_attachment_url_from(msg: &Message) -> Option<Url> {
-    let attachment = msg.attachments.get(0)?;
+fn get_urls(ctx: &Context, msg: &Message, args: Args) -> Option<Vec<URL>> {
+    let mut res = if let Some(urls) = get_urls_from_message(msg) {
+        urls
+    } else { 
+        Vec::new() 
+    };
 
-    Some(Url::parse(&attachment.url).expect("Either Discord or serenity gave us an invalid URL!"))
+    if let Some(urls) = msg.referenced_message
+        .clone().and_then(|m| get_attachment_urls(&*m)) {
+            res.append(&urls);
+        }
+
+    if res.is_empty() {
+        let prev_msg = msg
+            .channel_id
+            .messages(ctx, |gm| gm.before(msg.id).limit(1))
+            .await?;
+
+        if let Some(urls) = get_attachment_urls(prev_msg) {
+            Some(urls)
+        }
+        else {
+            None
+        }
+    } else {
+        Some(res)
+    }
+}
+
+fn get_urls_from_message(msg: &Message) -> Option<Vec<Url>> {
+    let mut res = Vec::new();
+
+    if let Some(urls) = get_attachment_urls(&msg) {
+        res.append(&urls);
+    }
+
+    let raw_arg = args.parse::<String>().unwrap_or_else(|_| "".into());
+    if let Some(urls) = get_urls_from_string(raw_arg) {
+        res.append(&urls);
+    }
+
+    if res.empty() {
+        None
+    } else {
+        Some(res)
+    }
+}
+
+fn get_attachment_urls(msg: &Message) -> Option<Vec<Url>> {
+    if msg.attachments.empty() {
+        None
+    } else {
+        let mut res = Vec::new();
+        for attachment in &msg.attachments {
+            if let Ok(url) = Url::parse(&attachment.url) {
+                res.push(url);
+            }
+        }
+
+        if res.empty() {
+            None
+        } else {
+            Some(res)
+        }
+    }
+}
+
+fn get_urls_from_string(s: &String) -> Option<Vec<Url>> {
+    const MIN_URL_LENGTH: usize = "<http://>".len();
+
+    if s.len() < MIN_URL_LENGTH {
+        None
+    } else {
+        //NOTE: We will assume a valid URL can not contain spaces.
+        let mut res = Vec::new();
+        for Some(mut section) in s.split_whitespace() {
+            if section.len() < MIN_URL_LENGTH {
+                continue;
+            }
+
+            if section.starts_with('<') {
+                section = section[1..].to_string();
+            }
+
+            if section.ends_with('>') {
+                section = section[..raw_arg.len()].to_string();
+            }
+
+
+            if let Ok(url) = Url::parse(&section) {
+                res.push(url);
+            }
+        }
+
+        if res.empty() {
+            None
+        } else {
+            Some(res)
+        }
+    }
 }
