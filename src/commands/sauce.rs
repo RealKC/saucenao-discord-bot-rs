@@ -81,7 +81,11 @@ pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 react = react.combine(React::Failed);
                 msg.author
                     .dm(ctx, |m| {
-                        m.content(format!("Couldn't get the sauce :c: \n ```{}```", why))
+                        m.content(format!(
+                            "Couldn't get the sauce for {url} :c: \n ```{why}```",
+                            url = url,
+                            why = why
+                        ))
                     })
                     .await?;
             }
