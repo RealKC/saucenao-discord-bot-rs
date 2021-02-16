@@ -9,7 +9,6 @@ use serenity::{
     framework::standard::{macros::command, Args},
     model::channel::{Message, ReactionType},
 };
-use tracing::info;
 use url::Url;
 
 use crate::SauceContainer;
