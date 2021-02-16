@@ -53,7 +53,12 @@ pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         let sauce = saucenao.check_sauce(url.as_str()).await;
 
         match sauce {
-            Ok(sauce) => {
+            Ok(mut sauce) => {
+                sauce.items.sort_by(|s1, s2| {
+                    s1.partial_cmp(s2)
+                        .expect("Saucenao gave us NaN similarities")
+                });
+
                 if sauce.items[0].similarity > 50.0 {
                     msg.react(ctx, ReactionType::Unicode("✅".into())).await?;
                 } else {
@@ -62,10 +67,7 @@ pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 info!("URL?: {}", sauce.original_url);
 
                 let mut contents = String::with_capacity(2000);
-                contents.push_str(&format!(
-                    "Possible sauces for <{url}>:\n",
-                    url = &url
-                ));
+                contents.push_str(&format!("Possible sauces for <{url}>:\n", url = &url));
                 for i in 0..min(5, sauce.items.len()) {
                     contents.push_str(&format!(
                         "* {similarity}% similar: <{url}>\n",
