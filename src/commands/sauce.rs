@@ -1,6 +1,6 @@
 //https://fsa.zobj.net/crop.php?r=TTaoo-Hk-NzrmVjElOUhUzi89I-XZojwpmk_E8w3SClP7apqNrE-YEKqCtf_WJ5CeIk5IRVf8q8jfCUSXeRixiP12a25ZWPzHzbxUBjpF9iNixLG2V0TZRKjp4I3JV73bfV5vLEwmBn1W5-F
 
-use std::cmp::min;
+use std::cmp::{min, Ordering};
 
 use sauce_api::Sauce;
 use serenity::framework::standard::CommandResult;
@@ -55,10 +55,10 @@ pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
         match sauce {
             Ok(mut sauce) => {
-                sauce.items.sort_by(|s1, s2| {
-                    s1.partial_cmp(s2)
-                        .expect("Saucenao gave us NaN similarities")
-                });
+                sauce
+                    .items
+                    // If we encounter NaNs, send them to the end
+                    .sort_by(|s1, s2| s1.partial_cmp(s2).unwrap_or(Ordering::Less));
 
                 if sauce.items[0].similarity < 50.0 {
                     react = react.combine(React::HadIssues);
