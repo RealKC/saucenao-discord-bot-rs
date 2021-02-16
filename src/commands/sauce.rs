@@ -54,11 +54,18 @@ pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
         match sauce {
             Ok(sauce) => {
-                msg.react(ctx, ReactionType::Unicode("✅".into())).await?;
+                if sauce.items[0].similarity > 50.0 {
+                    msg.react(ctx, ReactionType::Unicode("✅".into())).await?;
+                } else {
+                    msg.react(ctx, ReactionType::Unicode("😕".into())).await?;
+                }
                 info!("URL?: {}", sauce.original_url);
 
                 let mut contents = String::with_capacity(2000);
-                contents.push_str("Possible sauces:\n");
+                contents.push_str(&format!(
+                    "Possible sauces for <{url}>:\n",
+                    url = &url
+                ));
                 for i in 0..min(5, sauce.items.len()) {
                     contents.push_str(&format!(
                         "* {similarity}% similar: <{url}>\n",
