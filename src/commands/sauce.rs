@@ -65,8 +65,6 @@ pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     react = react.combine(React::HadIssues);
                 }
 
-                info!("URL?: {}", sauce.original_url);
-
                 let mut contents = String::with_capacity(2000);
                 contents.push_str(&format!("Possible sauces for <{url}>:\n", url = &url));
                 for i in 0..min(5, sauce.items.len()) {
