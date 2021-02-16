@@ -49,6 +49,8 @@ pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         .expect("Bruh. Where's the Sauce");
     let saucenao = saucenao_guard.read().await;
 
+    let mut react = React::Succeeded;
+
     for url in &urls {
         let sauce = saucenao.check_sauce(url.as_str()).await;
 
@@ -59,11 +61,10 @@ pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                         .expect("Saucenao gave us NaN similarities")
                 });
 
-                if sauce.items[0].similarity > 50.0 {
-                    msg.react(ctx, ReactionType::Unicode("✅".into())).await?;
-                } else {
-                    msg.react(ctx, ReactionType::Unicode("😕".into())).await?;
+                if sauce.items[0].similarity < 50.0 {
+                    react = react.combine(React::HadIssues);
                 }
+
                 info!("URL?: {}", sauce.original_url);
 
                 let mut contents = String::with_capacity(2000);
@@ -79,7 +80,7 @@ pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 msg.author.dm(ctx, |m| m.content(contents)).await?;
             }
             Err(why) => {
-                msg.react(ctx, ReactionType::Unicode("❌".into())).await?;
+                react = react.combine(React::Failed);
                 msg.author
                     .dm(ctx, |m| {
                         m.content(format!("Couldn't get the sauce :c: \n ```{}```", why))
@@ -89,7 +90,48 @@ pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         }
     }
 
+    msg.react(ctx, react.into_reaction_type()).await?;
+
     Ok(())
+}
+
+#[derive(PartialEq)]
+enum React {
+    Succeeded,
+    HadIssues,
+    Failed,
+}
+
+impl React {
+    fn combine(self, other: React) -> Self {
+        use React::*;
+
+        match other {
+            Succeeded => {
+                if self == Succeeded {
+                    Succeeded
+                } else {
+                    HadIssues
+                }
+            }
+            HadIssues => HadIssues,
+            Failed => {
+                if self == Failed {
+                    Failed
+                } else {
+                    HadIssues
+                }
+            }
+        }
+    }
+
+    fn into_reaction_type(self) -> ReactionType {
+        match self {
+            React::Succeeded => ReactionType::Unicode("✅".into()),
+            React::HadIssues => ReactionType::Unicode("😕".into()),
+            React::Failed => ReactionType::Unicode("❌".into()),
+        }
+    }
 }
 
 async fn call_user_out(ctx: &Context, msg: &Message) -> CommandResult {
