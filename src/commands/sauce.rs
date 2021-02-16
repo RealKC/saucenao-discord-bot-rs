@@ -19,16 +19,21 @@ use crate::SauceContainer;
 This command searches Saucenao for the source of a provided image.
 
 You may provide it in the following ways:
- \* by calling this command right after someone posted an image
- \* by calling this command while replying to a message with a image attachment
- \* by providing the URL of the image as a command parameter, for example `~sauce <url>`
- \* by calling this image in a message with an image attachment
+\* by calling this command right after someone posted an image
+\* by calling this command while replying to a message with a image attachment
+\* by providing the URL of the image as a command parameter, for example `~sauce <url>`
+\* by calling this image in a message with an image attachment
 
 It is important to note that this will NOT try to find URLs in the _contents_ of a previous message, it must be an attachment.
 "#)]
 pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
-    let urls = match get_urls(&ctx, &msg, args) {
-        Some(urls) => { urls }
+    let prev_msg = msg
+        .channel_id
+        .messages(ctx, |gm| gm.before(msg.id).limit(1))
+        .await?;
+
+    let urls = match get_urls(&msg, args, prev_msg.get(0)) {
+        Some(urls) => urls,
         None => {
             call_user_out(ctx, msg).await?;
             return Ok(());
@@ -56,10 +61,10 @@ pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 contents.push_str("Possible sauces:\n");
                 for i in 0..min(5, sauce.items.len()) {
                     contents.push_str(&format!(
-                                "* {similarity}% similar: <{url}>\n",
-                                similarity = sauce.items[i].similarity,
-                                url = sauce.items[i].link
-                                ));
+                        "* {similarity}% similar: <{url}>\n",
+                        similarity = sauce.items[i].similarity,
+                        url = sauce.items[i].link
+                    ));
                 }
 
                 msg.author.dm(ctx, |m| m.content(contents)).await?;
@@ -68,9 +73,9 @@ pub async fn sauce(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 msg.react(ctx, ReactionType::Unicode("❌".into())).await?;
                 msg.author
                     .dm(ctx, |m| {
-                            m.content(format!("Couldn't get the sauce :c: \n ```{}```", why))
-                            })
-                .await?;
+                        m.content(format!("Couldn't get the sauce :c: \n ```{}```", why))
+                    })
+                    .await?;
             }
         }
     }
@@ -87,48 +92,44 @@ async fn call_user_out(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
-fn get_urls(ctx: &Context, msg: &Message, args: Args) -> Option<Vec<URL>> {
-    let mut res = if let Some(urls) = get_urls_from_message(msg) {
+fn get_urls(msg: &Message, args: Args, prev_msg: Option<&Message>) -> Option<Vec<Url>> {
+    let mut res = if let Some(urls) = get_urls_from_message(msg, args) {
         urls
-    } else { 
-        Vec::new() 
+    } else {
+        Vec::new()
     };
 
-    if let Some(urls) = msg.referenced_message
-        .clone().and_then(|m| get_attachment_urls(&*m)) {
-            res.append(&urls);
-        }
+    if let Some(mut urls) = msg
+        .referenced_message
+        .clone()
+        .and_then(|m| get_attachment_urls(&*m))
+    {
+        res.append(&mut urls);
+    }
 
     if res.is_empty() {
-        let prev_msg = msg
-            .channel_id
-            .messages(ctx, |gm| gm.before(msg.id).limit(1))
-            .await?;
-
-        if let Some(urls) = get_attachment_urls(prev_msg) {
-            Some(urls)
-        }
-        else {
-            None
+        match prev_msg {
+            Some(msg) => get_attachment_urls(msg),
+            None => None,
         }
     } else {
         Some(res)
     }
 }
 
-fn get_urls_from_message(msg: &Message) -> Option<Vec<Url>> {
+fn get_urls_from_message(msg: &Message, args: Args) -> Option<Vec<Url>> {
     let mut res = Vec::new();
 
-    if let Some(urls) = get_attachment_urls(&msg) {
-        res.append(&urls);
+    if let Some(mut urls) = get_attachment_urls(&msg) {
+        res.append(&mut urls);
     }
 
     let raw_arg = args.parse::<String>().unwrap_or_else(|_| "".into());
-    if let Some(urls) = get_urls_from_string(raw_arg) {
-        res.append(&urls);
+    if let Some(mut urls) = get_urls_from_string(&raw_arg) {
+        res.append(&mut urls);
     }
 
-    if res.empty() {
+    if res.is_empty() {
         None
     } else {
         Some(res)
@@ -136,7 +137,7 @@ fn get_urls_from_message(msg: &Message) -> Option<Vec<Url>> {
 }
 
 fn get_attachment_urls(msg: &Message) -> Option<Vec<Url>> {
-    if msg.attachments.empty() {
+    if msg.attachments.is_empty() {
         None
     } else {
         let mut res = Vec::new();
@@ -146,7 +147,7 @@ fn get_attachment_urls(msg: &Message) -> Option<Vec<Url>> {
             }
         }
 
-        if res.empty() {
+        if res.is_empty() {
             None
         } else {
             Some(res)
@@ -162,26 +163,25 @@ fn get_urls_from_string(s: &String) -> Option<Vec<Url>> {
     } else {
         //NOTE: We will assume a valid URL can not contain spaces.
         let mut res = Vec::new();
-        for Some(mut section) in s.split_whitespace() {
+        for mut section in s.split_whitespace() {
             if section.len() < MIN_URL_LENGTH {
                 continue;
             }
 
             if section.starts_with('<') {
-                section = section[1..].to_string();
+                section = &section[1..];
             }
 
             if section.ends_with('>') {
-                section = section[..raw_arg.len()].to_string();
+                section = &section[..section.len()];
             }
-
 
             if let Ok(url) = Url::parse(&section) {
                 res.push(url);
             }
         }
 
-        if res.empty() {
+        if res.is_empty() {
             None
         } else {
             Some(res)
