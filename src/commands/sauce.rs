@@ -209,7 +209,7 @@ fn get_attachment_urls(msg: &Message) -> Option<Vec<Url>> {
     }
 }
 
-fn get_urls_from_string(s: &String) -> Option<Vec<Url>> {
+fn get_urls_from_string(s: &str) -> Option<Vec<Url>> {
     const MIN_URL_LENGTH: usize = "<http://>".len();
 
     if s.len() < MIN_URL_LENGTH {
