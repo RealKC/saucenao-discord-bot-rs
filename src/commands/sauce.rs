@@ -100,12 +100,14 @@ async fn call_user_out(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 fn get_urls(msg: &Message, args: Args, prev_msg: Option<&Message>) -> Option<Vec<Url>> {
+    //Retrieve both URLs written down and the URLs from the attachments
     let mut res = if let Some(urls) = get_urls_from_message(msg, args) {
         urls
     } else {
         Vec::new()
     };
 
+    //If the referenced message has attachments, add those URLs as well
     if let Some(mut urls) = msg
         .referenced_message
         .clone()
@@ -114,6 +116,7 @@ fn get_urls(msg: &Message, args: Args, prev_msg: Option<&Message>) -> Option<Vec
         res.append(&mut urls);
     }
 
+    //If up to this point there are no URLs, try adding the attachments from the previous message
     if res.is_empty() {
         match prev_msg {
             Some(msg) => get_attachment_urls(msg),
