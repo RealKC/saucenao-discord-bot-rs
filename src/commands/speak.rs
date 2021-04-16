@@ -9,9 +9,9 @@ use serenity::{
 #[owners_only]
 #[only_in(dms)]
 pub async fn speak(ctx: &Context, _: &Message, mut args: Args) -> CommandResult {
-    let channel_id = args.single::<ChannelId>()?;
+    let channel_id = args.single::<u64>()?;
 
-    channel_id.say(ctx, args.rest()).await?;
+    ChannelId(channel_id).say(ctx, args.rest()).await?;
 
     Ok(())
 }
