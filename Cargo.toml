@@ -14,7 +14,7 @@ tracing = "0.1.26"
 tracing-subscriber = "0.2.18"
 
 dotenv = "0.15.0"
-url = "2.2.1"
+url = "2.2.2"
 
 [dependencies.serenity]
 git = "https://github.com/serenity-rs/serenity"
