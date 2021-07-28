@@ -32,7 +32,7 @@ impl TypeMapKey for SauceContainer {
 }
 
 #[group("Commands")]
-#[commands(sauce, about, terms)]
+#[commands(sauce, about, terms, speak)]
 struct Commands;
 
 struct Handler;
@@ -76,7 +76,7 @@ async fn main() {
             c.with_whitespace(true)
                 .on_mention(Some(bot_id))
                 .prefix("~")
-                .delimiters(vec![", ", ","])
+                .delimiters(vec![", ", ",", " "])
                 .owners(owners)
         })
         .after(after)
